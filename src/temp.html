@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Playfair's Visualization with D3.js</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+      svg {
+        font: 10px sans-serif;
+      }
+      path {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5px;
+      }
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+      .legend {
+        font-size: 12px;
+      }
+      .legend rect {
+        fill: steelblue;
+        stroke: #000;
+        stroke-width: 1px;
+      }
+      .legend text {
+        fill: #000;
+      }
+
+
+
+    </style>
+</head>
+<body>
+<svg width="960" height="500"></svg>
+<script>
+      const data = [
+        { year: 2004, singapore: 21329, shanghai: 14557 },
+        { year: 2005, singapore: 23192, shanghai: 18084 },
+        { year: 2006, singapore: 24792, shanghai: 21710 },
+        { year: 2007, singapore: 27932, shanghai: 26150 },
+        { year: 2008, singapore: 29918, shanghai: 27980 },
+        { year: 2009, singapore: 25866, shanghai: 25002 },
+        { year: 2010, singapore: 28431, shanghai: 29069 },
+        { year: 2011, singapore: 29937, shanghai: 31700 },
+        { year: 2012, singapore: 31649, shanghai: 32529 }
+      ];
+
+      const margin = { top: 40, right: 20, bottom: 30, left: 50 };
+      const width = 960 - margin.left - margin.right;
+      const height = 500 - margin.top - margin.bottom;
+
+      const svg = d3.select("svg")
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+      const x = d3.scaleLinear()
+        .domain([2004, 2012])
+        .range([0, width]);
+
+      const y = d3.scaleLinear()
+        .domain([10000, 10000 + d3.max(data, d => d.singapore > d.shanghai ? d.singapore : d.shanghai)])
+        .range([height, 0]);
+
+      const xAxis = d3.axisBottom(x)
+        .tickFormat(d3.format("d"));
+
+      svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(xAxis);
+
+      const yAxis = d3.axisLeft(y)
+        .tickFormat(d3.format(".2s"));
+
+      svg.append("g")
+         .attr("class", "grid")
+         .attr("transform", `translate(0, ${height})`)
+         .call(d3.axisBottom(x)
+           .tickSize(-height)
+           .tickFormat("")
+         );
+
+      svg.append("g")
+         .attr("class", "grid")
+         .call(d3.axisLeft(y)
+           .tickSize(-width)
+           .tickFormat("")
+         );
+
+      svg.append("g")
+         .attr("transform", `translate(0, ${height})`)
+         .call(xAxis);
+
+      svg.append("g")
+         .call(yAxis)
+         .append("text")
+         .attr("fill", "#000")
+         .attr("transform", "rotate(-90)")
+         .attr("y", 6)
+         .attr("dy", "0.71em")
+         .attr("text-anchor", "end")
+         .text("Amount");
+
+        // Add gridlines
+      svg.append("g")
+        .attr("class", "grid")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x)
+           .tickSize(-height)
+           .tickFormat("")
+          );
+
+        svg.append("g")
+          .attr("class", "grid")
+          .call(d3.axisLeft(y)
+            .tickSize(-width)
+            .tickFormat("")
+          );
+
+
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "20px")
+        .text("Shanghai overtakes Singapore: Port handling capacity in comparison");
+
+
+      const lineExports = d3.line()
+        .x(d => x(d.year))
+        .y(d => y(d.singapore));
+
+    const area = d3.area()
+      .x(d => x(d.year))
+      .y0(d => y(d.singapore))
+      .y1(d => y(d.shanghai));
+
+    const areaPath = svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area)
+      .style("fill", "orange")
+      .style("opacity", 0.5);
+
+    const areaPath2 = svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", d3.area()
+        .x(d => x(d.year))
+        .y0(d => y(d.shanghai))
+        .y1(d => y(d.singapore))
+        .defined(d => d.singapore >= d.shanghai)
+      )
+      .style("fill", "steelblue")
+      .style("opacity", 0.5);
+
+    svg.selectAll(".area")
+      .attr("fill", function(d) {
+        if (d.singapore >= d.shanghai) {
+          return "steelblue";
+        } else {
+          return "orange";
+        }
+      });
+
+
+      const line = d3.line()
+        .x(d => x(d.year))
+        .y(d => y(d.singapore));
+
+      svg.append("path")
+        .datum(data)
+        .attr("class", "line singapore")
+        .attr("d", line)
+        .style("stroke", "steelblue")
+        .style("stroke-width", "4px");
+
+
+      line.y(d => y(d.shanghai));
+
+      svg.append("path")
+        .datum(data)
+        .attr("class", "line shanghai")
+        .attr("d", line)
+        .style("stroke", "orange")
+        .style("stroke-width", "4px");
+
+      const legend = svg.selectAll(".legend")
+        .data([{ name: "Singapore", color: "steelblue" }, { name: "Shanghai", color: "orange" }])
+        .enter()
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", (d, i) => `translate(0, ${i * 20})`);
+
+      legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", d => d.color);
+
+      legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(d => d.name);
+
+</script>
+</body>
+</html>

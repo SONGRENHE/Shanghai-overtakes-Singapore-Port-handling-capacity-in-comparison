@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="libraryTable">
+    <library name="javafx-sdk-15-osx">
+      <CLASSES>
+        <root url="file://$USER_HOME$/Desktop/comp3021/COMP3021-2020Fall-PA2-Student-Version-main/javafx-sdk-15-osx" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
+  </component>
+</project>
